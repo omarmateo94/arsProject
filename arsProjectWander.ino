@@ -22,6 +22,9 @@ Servo rightMotor;
 double calculateAngle(double x1, double y1, double x2, double y2) {
   return atan2(y2 - y1, x2 - x1);
 }
+long microsecondsToCentimeters(long microseconds) {
+   return microseconds / 29 / 2;
+}
 
 // Function to determine which direction is more open based on ultrasonic sensor readings
 int determineOpenDirection(int front, int left, int right) {
@@ -48,11 +51,27 @@ void setup() {
   Serial.begin(9600);
 }
 
+int getDistance(const int pingPin, const int echoPin){
+  long duration, cm;
+   pinMode(pingPin, OUTPUT);
+   digitalWrite(pingPin, LOW);
+   delayMicroseconds(2);
+   digitalWrite(pingPin, HIGH);
+   delayMicroseconds(10);
+   digitalWrite(pingPin, LOW);
+   pinMode(echoPin, INPUT);
+   duration = pulseIn(echoPin, HIGH);
+   cm = microsecondsToCentimeters(duration);
+   Serial.print(cm);
+   Serial.println();
+   return cm;
+}
+
 void loop() {
   // Read ultrasonic sensor readings
-  int frontSensorReading = analogRead(frontSensorPin);
-  int leftSensorReading = analogRead(leftSensorPin);
-  int rightSensorReading = analogRead(rightSensorPin);
+  int leftSensorReading = getDistance(13,7);
+  int frontSensorReading = getDistance(12,6);
+  int rightSensorReading = getDistance(11,5);
 
   // Convert sensor readings to ranges between 0 and 1
   double frontRange = normalizeRange(frontSensorReading);

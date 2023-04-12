@@ -32,7 +32,7 @@ void loop() {
   
 }
 
-void RobotMoves(int left, int right){
+void move(int left, int right){
   servoLeft.writeMicroseconds(left);  
   servoRight.writeMicroseconds(right);
   }
@@ -60,6 +60,27 @@ void updateState() {
 }
 
 void  set_command(state){
+  switch(case) {
+    case 0: //Move Forward
+      move(1700,1700); //UPDATE VALUES ONCE ROBOT WHEELS ARE TESTED
+      break;
+    
+    case 1: //Move to the left
+      move()
+      break;
+
+    case 2: //Move to the left
+      move()
+      break;
+
+    case 3: //Move to the left
+      move()
+      break;
+
+    case 4: //Emergency stop
+      move(1500,1500)
+      break;
+  }
   
   }
 

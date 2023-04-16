@@ -1,23 +1,71 @@
 #include <Servo.h>
 
 // Define constants for ultrasonic sensor pins
-const int frontSensorPin = 2;
-const int leftSensorPin = 3;
-const int rightSensorPin = 4;
+const int frontSensorPing = 12;
+const int frontSensorEcho = 6;
 
-// Define constants for servo motor pins
-const int leftMotorPin = 5;
-const int rightMotorPin = 6;
+const int leftSensorPing = 13;
+const int leftSensorEcho = 7;
+
+const int rightSensorPing = 11;
+const int rightSensorEcho = 5;
+
+int leftSensorReading;
+int frontSensorReading;
+int rightSensorReading;
 
 // Define constants for ultrasonic sensor angles and ranges
 const int frontAngle = 0;
-const int leftAngle = 45;
-const int rightAngle = -45;
+const int leftAngle = -45;
+const int rightAngle = 45;
 const int maxRange = 200; // Maximum range of the ultrasonic sensors in cm
 
 Servo leftMotor;
 Servo rightMotor;
 
+void getDistance() {
+  long frontDuration, leftDuration, rightDuration;
+
+  //Front sensor
+   pinMode(frontSensorPing, OUTPUT);
+   digitalWrite(frontSensorPing, LOW);
+   delayMicroseconds(2);
+   digitalWrite(frontSensorPing, HIGH);
+   delayMicroseconds(10);
+   digitalWrite(frontSensorPing, LOW);
+   pinMode(frontSensorEcho, INPUT);
+   frontDuration = pulseIn(frontSensorEcho, HIGH);
+   frontSensorReading = microsecondsToCentimeters(frontDuration);
+
+  //Left sensor
+   pinMode(leftSensorPing, OUTPUT);
+   digitalWrite(leftSensorPing, LOW);
+   delayMicroseconds(2);
+   digitalWrite(leftSensorPing, HIGH);
+   delayMicroseconds(10);
+   digitalWrite(leftSensorPing, LOW);
+   pinMode(leftSensorEcho, INPUT);
+   leftDuration = pulseIn(leftSensorEcho, HIGH);
+   leftSensorReading = microsecondsToCentimeters(leftDuration);
+
+   //Right Sensor
+   pinMode(rightSensorPing, OUTPUT);
+   digitalWrite(rightSensorPing, LOW);
+   delayMicroseconds(2);
+   digitalWrite(rightSensorPing, HIGH);
+   delayMicroseconds(10);
+   digitalWrite(rightSensorPing, LOW);
+   pinMode(rightSensorEcho, INPUT);
+   rightDuration = pulseIn(rightSensorEcho, HIGH);
+   rightSensorReading = microsecondsToCentimeters(rightDuration);
+   
+   /*
+   Serial.print(cm);
+   Serial.print("cm");
+   Serial.println();
+   delay(100);
+   */
+}
 // Function to calculate the angle between two points
 double calculateAngle(double x1, double y1, double x2, double y2) {
   return atan2(y2 - y1, x2 - x1);
@@ -45,34 +93,17 @@ double normalizeRange(int sensorReading) {
 
 void setup() {
   // Initialize servo motors
-  leftMotor.attach(leftMotorPin);
-  rightMotor.attach(rightMotorPin);
+  leftMotor.attach(13);
+  rightMotor.attach(12);
 
   // Initialize serial communication
   Serial.begin(9600);
 }
 
-int getDistance(const int pingPin, const int echoPin) {
-  long duration, cm;
-  pinMode(pingPin, OUTPUT);
-  digitalWrite(pingPin, LOW);
-  delayMicroseconds(2);
-  digitalWrite(pingPin, HIGH);
-  delayMicroseconds(10);
-  digitalWrite(pingPin, LOW);
-  pinMode(echoPin, INPUT);
-  duration = pulseIn(echoPin, HIGH);
-  cm = microsecondsToCentimeters(duration);
-  Serial.print(cm);
-  Serial.println();
-  return cm;
-}
 
 void loop() {
-  // Read ultrasonic sensor readings
-  int leftSensorReading = getDistance(leftSensorPin, frontSensorPin); //(trig,echo)
-  int frontSensorReading = getDistance(frontSensorPin, leftSensorPin);
-  int rightSensorReading = getDistance(rightSensorPin, rightSensorPin);
+  // Update distances from ultrasonics
+  getDistance();
 
   // Convert sensor readings to ranges between 0 and 1
   double frontRange = normalizeRange(frontSensorReading);
@@ -88,11 +119,14 @@ void loop() {
 
   // Adjust servo motor speeds based on calculated angle
   if (theta == leftAngle) {
-    leftSpeed = leftRange * 4;
-    rightSpeed = rightRange * 4;
+    leftSpeed = -200;
+    rightSpeed = 200;
   } else if (theta == rightAngle) {
-    leftSpeed = rightRange * 4;
-    rightSpeed = leftRange * 4;
+    leftSpeed = 200;
+    rightSpeed = -200;
+  } else {
+    leftSpeed = 200;
+    rightSpeed = 200;
   }
 
   // Set servo motor speeds
@@ -100,6 +134,8 @@ void loop() {
   rightMotor.writeMicroseconds(1500 - rightSpeed);
 
   // Print sensor readings and motor speeds for debugging
+  Serial.print("Theta: ");
+  Serial.println(theta);  /*
   Serial.print("Front: ");
   Serial.print(frontSensorReading);
   Serial.print(" | Left: ");
@@ -110,6 +146,6 @@ void loop() {
   Serial.print(leftSpeed);
   Serial.print(" | Right Speed: ");
   Serial.println(rightSpeed);
-
+*/
   delay(100);
 }

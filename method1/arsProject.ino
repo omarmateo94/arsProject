@@ -28,7 +28,7 @@ void setup()                                 // Built in initialization block
 void loop() {
   updateDistance();
   updateState();
-  set_command(state);
+  set_command();
   
 }
 
@@ -59,8 +59,8 @@ void updateState() {
   }
 }
 
-void  set_command(state){
-  switch(case) {
+void  set_command(){
+  switch(state) {
     case 0: //Move Forward
       move(1700,1700); //UPDATE VALUES ONCE ROBOT WHEELS ARE TESTED
       break;

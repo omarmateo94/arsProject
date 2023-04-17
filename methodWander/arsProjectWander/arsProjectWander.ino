@@ -18,7 +18,8 @@ int rightSensorReading;
 const int frontAngle = 0;
 const int leftAngle = -45;
 const int rightAngle = 45;
-const int maxRange = 200; // Maximum range of the ultrasonic sensors in cm
+const int maxRange = 200;
+const int minRange = 10; // Minimun range of the ultrasonic sensors in cm
 
 Servo leftMotor;
 Servo rightMotor;
@@ -75,22 +76,6 @@ long microsecondsToCentimeters(long microseconds) {
   return microseconds / 29 / 2;
 }
 
-// Function to determine which direction is more open based on ultrasonic sensor readings
-int determineOpenDirection(double front, double left, double right) {
-  if (front >= left && front >= right) {
-    return frontAngle;
-  } else if (left >= front && left >= right) {
-    return leftAngle;
-  } else {
-    return rightAngle;
-  }
-}
-
-// Function to convert ultrasonic sensor readings to a range between 0 and 1
-double normalizeRange(int sensorReading) {
-  return min((double)sensorReading / maxRange, 1.0);
-}
-
 void setup() {
   // Initialize servo motors
   leftMotor.attach(13);
@@ -111,11 +96,8 @@ void loop() {
   double rightRange = normalizeRange(rightSensorReading);
 
   // Calculate the angle to the more open direction
-  int theta = determineOpenDirection(frontRange, leftRange, rightRange);
+  int theta = determineOpenDirection(frontSensorReading, leftSensorReading, rightSensorReading);
 
-  // Set servo motor speeds based on front sensor reading
-  int leftSpeed = frontRange * 4;
-  int rightSpeed = frontRange * 4;
 
   // Adjust servo motor speeds based on calculated angle
   if (theta == leftAngle) {
@@ -134,8 +116,8 @@ void loop() {
   rightMotor.writeMicroseconds(1500 - rightSpeed);
 
   // Print sensor readings and motor speeds for debugging
-  Serial.print("Theta: ");
-  Serial.println(theta);  /*
+  Serial.print("rightSensorReading: ");
+  Serial.println(rightSensorReading);  /*
   Serial.print("Front: ");
   Serial.print(frontSensorReading);
   Serial.print(" | Left: ");
@@ -148,4 +130,15 @@ void loop() {
   Serial.println(rightSpeed);
 */
   delay(100);
+}
+
+/ Function to determine which direction is more open based on ultrasonic sensor readings
+int determineOpenDirection(double front, double left, double right) {
+  if (front >= left && front >= right {
+    return frontAngle;
+  } else if (left >= front && left >= right) {
+    return leftAngle;
+  } else {
+    return rightAngle;
+  }
 }

@@ -5,7 +5,8 @@
  */
 
 #include <Servo.h>                           // Include servo library
- 
+
+
 Servo servoLeft;                             // Declare left servo signal
 Servo servoRight;                            // Declare right servo signal
 
@@ -15,6 +16,10 @@ const int frontSensorEcho = 6;
 
 const int leftSensorPing = 13;
 const int leftSensorEcho = 7;
+
+const int ARRAY_SIZE = 15;
+const int MAX_SAME_DIRECTION_COUNT = 5;
+int sameDirectionCount = 0;
 
 const int rightSensorPing = 11;
 const int rightSensorEcho = 5;
@@ -31,6 +36,43 @@ int distanceBack;     //Back Ultrasonic
 const int safeDistance = 5;
 const int safeDistanceSides = 5;
 
+//Arrays of history of values
+int leftList[ARRAY_SIZE] = {0};
+int rightList[ARRAY_SIZE] = {0};
+int frontList[ARRAY_SIZE] = {0};
+
+void store_and_normalize_sensors() {
+    // Store the value in the respective arrays
+    leftList[0] = distanceLeft;
+    frontList[0] = distanceFront;
+    rightList[0] = distanceRight;
+
+    // Shift the existing values in the arrays
+    for (int i = ARRAY_SIZE - 1; i > 0; i--) {
+        leftList[i] = leftList[i - 1];
+        frontList[i] = frontList[i - 1];
+        rightList[i] = rightList[i - 1];
+    }
+
+    // Normalize the values in the arrays
+    for (int i = 0; i < ARRAY_SIZE; i++) {
+        leftList[i] = leftList[i] / distanceLeft;
+        frontList[i] = frontList[i] / distanceFront;
+        rightList[i] = rightList[i] / distanceRight;
+    }
+    // Check if the robot has been going in the same direction for too long
+    if (leftList[0] == leftList[1] && frontList[0] == frontList[1] && rightList[0] == rightList[1]) {
+        sameDirectionCount++;
+        if (sameDirectionCount >= MAX_SAME_DIRECTION_COUNT) {
+            move(1480,1520);
+            delay(400);
+            Serial.println("STOP REPEATING STEPS");
+        }
+    } else {
+        sameDirectionCount = 0; // Reset same direction count
+    }
+}
+
 void setup()                                 // Built in initialization block
 {
   Serial.begin(9600); // Starting Serial Terminal
@@ -40,7 +82,7 @@ void setup()                                 // Built in initialization block
  
 void loop() {
   updateDistance();
-  //getMax(distanceLeft,distanceFront,distanceRight);
+  //void store_and_normalize_sensors();
   updateState(distanceLeft,distanceFront,distanceRight);
   setCommand(distanceLeft,distanceFront,distanceRight);
   
@@ -56,22 +98,27 @@ void updateState(int left, int front, int right){
   // 0:front
   // 1: right
   //2: Backwards
-  if (front >= right && front >= left) state=0;
+  if (front > 5 && left>5 && right>5) state=0;
   else if (right >= front && right >= left) state=1;
   else if (left >= right && left >= front) state=-1;
  // else if(right < safeDistanceSides && left < safeDistanceSides && front <safeDistance) state=2;
 }
 
 void setCommand(int left, int front, int right) {
-Serial.println(distanceFront);
+  Serial.print("Front: ");
+  Serial.print(distanceFront);
+  Serial.print(" | Left: ");
+  Serial.print(distanceLeft);
+  Serial.print(" | Right: ");
+  Serial.println(distanceRight);
   //Max=Front
   if (state==0){
     if(left<safeDistanceSides){
-      move(1550, 1350);
+      move(1500, 1350);
       Serial.println("Front-right");
     }
     else if(right<safeDistanceSides){
-    move(1650, 1450);
+    move(1650, 1500);
     Serial.println("Front-left");
     }
     else {
@@ -83,8 +130,9 @@ Serial.println(distanceFront);
   //Max=Right
   else if (state==1) {
     if (front < safeDistance) {
-      move(1500, 1600);
+      move(1480, 1560);
       Serial.println("Right-Backwards");
+      //delay(400);
     }
     else {
       move(1600, 1500);
@@ -95,8 +143,9 @@ Serial.println(distanceFront);
   //Max=Left
   else if (state==1) {
     if (front < safeDistance) {
-      move(1600, 1500);
+      move(1550, 1450);
       Serial.println("Left-Backwards");
+      //delay(400);
     }
     else {
       move(1500, 1600);
@@ -110,59 +159,6 @@ Serial.println(distanceFront);
 }
 
 
-/*
-void updateState() {
-  //Move forward
-  if(distanceFront > safeDistance && distanceLeft > safeDistance && distanceRight > safeDistance){
-    state = 0;
-  }
-
-  // Move to the left
-  else if( distanceRight <= safeDistance && distanceLeft > safeDistance){
-    state = 1;
-  }
-
-  // Move to the right
-  else if( distanceFront <= safeDistance && distanceRight <= safeDistance && distanceLeft > safeDistance){
-    state = 2;
-  }
-
-  // Back up
-  else if( distanceFront <= safeDistance && distanceRight <= safeDistance && distanceLeft <= safeDistance){
-    state = 3;
-  }
-}
-
-void  set_command(){
-  switch(state) {
-    case 0: //Move Forward
-      move(1600,1400); //UPDATE VALUES ONCE ROBOT WHEELS ARE TESTED
-      Serial.println("Forward");
-      break;  
-    
-    case 1: //Move to the left
-      move(1400,1400);
-      Serial.println("Left");
-      break;
-
-    case 2: //Move to the right
-      move(1600,16000);
-      Serial.println("Right");
-      break;
-
-    case 3: //back up
-      move(1400,1600);
-      Serial.println("Backwards");
-      break;
-
-    case 4: //Emergency stop
-      move(1500,1500);
-      Serial.println("STOP");
-      break;
-  }
-  
-  }
-*/
 void updateDistance() {
   // Finding out the range for each sensor
   distanceLeft = getDistance(13,7);
@@ -184,7 +180,7 @@ int getDistance(int pingPin,int echoPin){
    cm = microsecondsToCentimeters(duration);
    //Serial.print(cm);
    //Serial.println();
-   delay(150);
+   delay(200);
    return cm;
 }
 

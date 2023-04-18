@@ -65,7 +65,6 @@ void store_and_normalize_sensors() {
         sameDirectionCount++;
         if (sameDirectionCount >= MAX_SAME_DIRECTION_COUNT) {
             move(1480,1520);
-            delay(400);
             Serial.println("STOP REPEATING STEPS");
         }
     } else {
@@ -152,10 +151,10 @@ void setCommand(int left, int front, int right) {
       Serial.println("Left");
     }
   }
-  else if (state=2) {
-      move(1400, 1600);
-      Serial.println("Backwards");  
-  }
+  //else if (state=2) {
+     // move(1400, 1600);
+     // Serial.println("Backwards");  
+ // }
 }
 
 
@@ -180,7 +179,7 @@ int getDistance(int pingPin,int echoPin){
    cm = microsecondsToCentimeters(duration);
    //Serial.print(cm);
    //Serial.println();
-   delay(200);
+   delay(100);
    return cm;
 }
 

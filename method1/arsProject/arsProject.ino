@@ -35,18 +35,21 @@ int distanceBack;     //Back Ultrasonic
 //Safe distance in cm.
 const int safeDistance = 5;
 const int safeDistanceSides = 5;
+int prevFront;
+int prevLeft;
+int prevRight;
 
 //Arrays of history of values
 int leftList[ARRAY_SIZE] = {0};
 int rightList[ARRAY_SIZE] = {0};
 int frontList[ARRAY_SIZE] = {0};
 
-void store_and_normalize_sensors() {
+/*void store_and_normalize_sensors() {
     // Store the value in the respective arrays
     leftList[0] = distanceLeft;
     frontList[0] = distanceFront;
     rightList[0] = distanceRight;
-
+/
     // Shift the existing values in the arrays
     for (int i = ARRAY_SIZE - 1; i > 0; i--) {
         leftList[i] = leftList[i - 1];
@@ -54,7 +57,7 @@ void store_and_normalize_sensors() {
         rightList[i] = rightList[i - 1];
     }
 
-    // Normalize the values in the arrays
+     Normalize the values in the arrays
     for (int i = 0; i < ARRAY_SIZE; i++) {
         leftList[i] = leftList[i] / distanceLeft;
         frontList[i] = frontList[i] / distanceFront;
@@ -70,7 +73,7 @@ void store_and_normalize_sensors() {
     } else {
         sameDirectionCount = 0; // Reset same direction count
     }
-}
+}*/
 
 void setup()                                 // Built in initialization block
 {
@@ -160,13 +163,13 @@ void setCommand(int left, int front, int right) {
 
 void updateDistance() {
   // Finding out the range for each sensor
-  distanceLeft = getDistance(13,7);
-  distanceFront = getDistance(12,6);
-  distanceRight = getDistance(11,5);
+  distanceLeft = getDistance(13,7, prevLeft, -1);
+  distanceFront = getDistance(12,6, prevFront, 0);
+  distanceRight = getDistance(11,5, prevRight, 1);
   //distanceBack = getDistance(10, 4);
 }
 
-int getDistance(int pingPin,int echoPin){
+int getDistance(int pingPin,int echoPin, int prevReading, int whichSensor){
   long duration, cm;
    pinMode(pingPin, OUTPUT);
    digitalWrite(pingPin, LOW);
@@ -180,6 +183,14 @@ int getDistance(int pingPin,int echoPin){
    //Serial.print(cm);
    //Serial.println();
    delay(100);
+   if (cm < 4) {
+     return prevReading;
+   }
+   else{
+     if (whichSensor == -1) prevLeft = cm;
+     if (whichSensor == 0) prevFront = cm;
+     if (whichSensor ==1) prevRight = cm;
+   }
    return cm;
 }
 

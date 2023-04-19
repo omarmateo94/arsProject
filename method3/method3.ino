@@ -33,8 +33,8 @@ int distanceRight;    //Right Ultrasonic
 int distanceBack;     //Back Ultrasonic
 
 //Safe distance in cm.
-const int safeDistance = 5;
-const int safeDistanceSides = 10;
+const int safeDistance = 15; //Safe distance for the front sensor
+const int safeDistanceSides = 8; //Safe distance for the side sensors
 int prevFront;
 int prevLeft;
 int prevRight;
@@ -84,15 +84,15 @@ void setCommand(int left, int front, int right) {
    if(left > right) move(1400,1500);
    else move(1500,1600);
  }
- else if(left < safeDistance) {
+ else if(left < safeDistanceSides) {
    move(1500,1500); //Stop
    move(1500,1580);
-   delay(200);
+  // delay(200);
  }
  else if(right <safeDistance){
   move(1500,1500); //Stop
    move(1420,1500);
-   delay(200);
+   //delay(200);
  }
  else move(1600,1400);
 }

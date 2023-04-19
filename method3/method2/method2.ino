@@ -34,7 +34,10 @@ int distanceBack;     //Back Ultrasonic
 
 //Safe distance in cm.
 const int safeDistance = 5;
-const int safeDistanceSides = 5;
+const int safeDistanceSides = 10;
+int prevFront;
+int prevLeft;
+int prevRight;
 
 
 void setup()                                 // Built in initialization block
@@ -61,7 +64,7 @@ void updateState(int left, int front, int right){
   // 0:front
   // 1: right
   //2: Backwards
-  if (front > 5 && left>5 && right>5) state=0;
+  if (front > 5 /*&& left>5 && right>5*/) state=0;
   else if (right >= front && right >= left) state=1;
   else if (left >= right && left >= front) state=-1;
  // else if(right < safeDistanceSides && left < safeDistanceSides && front <safeDistance) state=2;
@@ -97,12 +100,12 @@ void setCommand(int left, int front, int right) {
 
 void updateDistance() {
   // Finding out the range for each sensor
-  //distanceLeft = getDistance(13,7);
-  distanceFront = getDistance(12,6);
-  //distanceRight = getDistance(11,5);
+  distanceLeft = getDistance(13,7, prevLeft, -1);
+  distanceFront = getDistance(12,6, prevFront, 0);
+  distanceRight = getDistance(11,5, prevRight, 1);
 }
 
-int getDistance(int pingPin,int echoPin){
+int getDistance(int pingPin,int echoPin, int prevReading, int whichSensor){
   long duration, cm;
    pinMode(pingPin, OUTPUT);
    digitalWrite(pingPin, LOW);
@@ -113,9 +116,15 @@ int getDistance(int pingPin,int echoPin){
    pinMode(echoPin, INPUT);
    duration = pulseIn(echoPin, HIGH);
    cm = microsecondsToCentimeters(duration);
-   //Serial.print(cm);
-   //Serial.println();
-   delay(500);
+   delay(100);
+   if (cm < 4) {
+     return prevReading;
+   }
+   else{
+     if (whichSensor == -1) prevLeft = cm;
+     if (whichSensor == 0) prevFront = cm;
+     if (whichSensor ==1) prevRight = cm;
+   }
    return cm;
 }
 
